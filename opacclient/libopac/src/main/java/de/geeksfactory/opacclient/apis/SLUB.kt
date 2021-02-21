@@ -31,6 +31,7 @@ import de.geeksfactory.opacclient.searchfields.TextSearchField
 import de.geeksfactory.opacclient.utils.*
 import okhttp3.FormBody
 import okhttp3.HttpUrl
+import okhttp3.Response
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
@@ -39,6 +40,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
+import java8.util.concurrent.CompletableFuture
 
 /**
  * OpacApi implementation for SLUB. https://slub-dresden.de
@@ -136,6 +138,7 @@ open class SLUB : OkHttpBaseApi() {
     }
 
     internal fun parseSearchResults(json: JSONObject): SearchRequestResult {
+        val availFutures = arrayListOf<CompletableFuture<Response>>()
         val searchresults = json.getJSONArray("docs").map<JSONObject, SearchResult> {
             SearchResult().apply {
                 innerhtml = "<b>${it.getString("title")}</b><br>${it.getJSONArray("author").optString(0)}"
@@ -146,10 +149,29 @@ open class SLUB : OkHttpBaseApi() {
                 }
                 type = mediaTypes[it.getJSONArray("format").optString(0)]
                         ?: SearchResult.MediaType.NONE
-                id = "id/${it.getString("id")}"
+                id = "id/${it.getString("id")}".also {
+                    availFutures.add(
+                            asyncGet("$baseurl/$it/?type=1369315139&tx_find_find[data-format]=json-holding-status&tx_find_find[format]=data",
+                                    true).whenComplete { response: Response?, _: Throwable? ->
+                                if (response != null) {
+                                    status = when (try {
+                                        JSONObject(response.body()?.string()).getInt("status")
+                                    } catch (e: Exception) {
+                                        0
+                                    }) {
+                                        1 -> SearchResult.Status.GREEN
+                                        2 -> SearchResult.Status.YELLOW
+                                        3 -> SearchResult.Status.RED
+                                        else -> SearchResult.Status.UNKNOWN
+                                    }
+                                } else  {
+                                    status = SearchResult.Status.UNKNOWN
+                                }
+                            })
+                }
             }
         }
-        //TODO: get status (one request per item!)
+        CompletableFuture.allOf(*availFutures.toTypedArray()).join()
         return SearchRequestResult(searchresults, json.getInt("numFound"), 1)
     }
 
