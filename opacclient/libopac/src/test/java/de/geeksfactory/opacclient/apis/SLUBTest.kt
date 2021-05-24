@@ -280,6 +280,7 @@ class SLUBSearchTest : BaseHtmlTest() {
                 shelfmark = "ST 233 H939"
             })
             collectionId = "id/0-1183957874"
+            cover = "http://vub.de/cover/data/isbn:9783836240956/medium/true/de/vub/cover.jpg" // cover as "note"
         }
 
         val item = slub.parseResultById(json)
@@ -324,6 +325,19 @@ class SLUBSearchTest : BaseHtmlTest() {
 
         assertThat(item, sameBeanAs(expected).ignoring("details"))
         assertThat(HashSet(item.details), sameBeanAs(HashSet(expected.details)))
+    }
+    
+    fun testParseResultByIdCoverAsMaterial() {
+        val json = JSONObject(readResource("/slub/search/detaill-cover-jpg-as-material.json"))
+        val item = slub.parseResultById(json)
+        assertEquals("http://www.netread.com/jcusers2/bk1388/319/9781472533319/image/lgcover.9781472533319.jpg", item.cover)
+    }
+
+    @Test
+    fun testParseResultByIdCoverSWBPlus() {
+        val json = JSONObject(readResource("/slub/search/detail-with-cover-html-swbplus.json"))
+        val item = slub.parseResultById(json)
+        assertEquals("http://swbplus.bsz-bw.de/bsz352428775cov.jpg", item.cover)
     }
 
     @Test
