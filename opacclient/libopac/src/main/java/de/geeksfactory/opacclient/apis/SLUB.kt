@@ -31,6 +31,7 @@ import de.geeksfactory.opacclient.searchfields.TextSearchField
 import de.geeksfactory.opacclient.utils.*
 import okhttp3.FormBody
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
@@ -122,7 +123,7 @@ open class SLUB : OkHttpBaseApi() {
     }
 
     override fun searchGetPage(page: Int): SearchRequestResult {
-        val queryUrlB = HttpUrl.get("$baseurl/?type=1369315142&tx_find_find%5Bformat%5D=data&tx_find_find%5Bdata-format%5D=app")
+        val queryUrlB = "$baseurl/?type=1369315142&tx_find_find%5Bformat%5D=data&tx_find_find%5Bdata-format%5D=app".toHttpUrl()
                 .newBuilder()
                 .addQueryParameter("tx_find_find[page]", page.toString())
         for (sq in query) {
@@ -135,7 +136,7 @@ open class SLUB : OkHttpBaseApi() {
             }
         }
         val queryUrl = queryUrlB.build()
-        if (queryUrl.querySize() <= 4) {
+        if (queryUrl.querySize <= 4) {
             throw OpacApi.OpacErrorException(stringProvider.getString(StringProvider.NO_CRITERIA_INPUT))
         }
         try {
@@ -175,9 +176,9 @@ open class SLUB : OkHttpBaseApi() {
             id.startsWith("id/") ->
                 "$baseurl/$id/"
             id.startsWith("bc/") || id.startsWith("rsn/") ->
-                httpHead("$baseurl/$id/", false).request().url().toString()
+                httpHead("$baseurl/$id/", false).request.url.toString()
             id.startsWith("http://slubdd.de/katalog?libero_mab") ->
-                httpHead(id, false).request().url().toString()
+                httpHead(id, false).request.url.toString()
             else -> // legacy case: id identifier without prefix
                 "$baseurl/id/$id/"
         } + "?type=1369315142&tx_find_find%5Bformat%5D=data&tx_find_find%5Bdata-format%5D=app"
@@ -429,7 +430,27 @@ open class SLUB : OkHttpBaseApi() {
 
     override fun prolongMultiple(media: List<String>,
                                  account: Account, useraction: Int, selection: String?): OpacApi.ProlongAllResult {
-        return return OpacApi.ProlongAllResult(OpacApi.MultiStepResult.Status.UNSUPPORTED)
+        val (illMedia, localMedia) = media.partition { it.startsWith("FL") }
+        val messages = mutableListOf<String>()
+        var hasError = false
+        if (illMedia.isNotEmpty()) {
+            messages.add(StringProvider.RENEW_ILL_SEPARATELY)
+        }
+        if (localMedia.isNotEmpty()) {
+            try {
+                val parameters = localMedia.mapIndexed { i, e -> "tx_slubaccount_account[renewals][$i]" to e.split('\t')[1] }.toMap()
+                val result = requestAccount(account, "renew", parameters)
+                result.optJSONObject("APIError")?.getString("message")?.let {
+                    messages.add(it)
+                }
+            } catch (e: java.lang.Exception) {
+                messages.add(e.message.toString())
+                hasError = true
+            }
+        }
+        return OpacApi.ProlongAllResult(if (hasError) OpacApi.MultiStepResult.Status.ERROR else OpacApi.MultiStepResult.Status.OK,
+                if (messages.isNotEmpty()) messages.joinToString("\n") else null
+        )
     }
 
     override fun cancel(media: String, account: Account, useraction: Int, selection: String?): OpacApi.CancelResult {
@@ -567,7 +588,7 @@ open class SLUB : OkHttpBaseApi() {
     }
 
     override fun getSupportFlags(): Int {
-        return OpacApi.SUPPORT_FLAG_ENDLESS_SCROLLING
+        return OpacApi.SUPPORT_FLAG_ENDLESS_SCROLLING or OpacApi.SUPPORT_FLAG_ACCOUNT_PROLONG_MULTIPLE
     }
 
     override fun getSupportedLanguages(): Set<String>? {

@@ -102,28 +102,28 @@ dependencies {
     implementation files('libs/endless-1.2.3.jar')
 
 // Kotlin
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.3.72'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.4.10'
 
 // AndroidX
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.palette:palette:1.0.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-    implementation 'androidx.work:work-runtime:2.3.4'
+    implementation 'androidx.work:work-runtime:2.5.0'
     implementation 'com.google.android.material:material:1.3.0'
 
 // Other
     implementation 'io.sentry:sentry-android-core:2.2.0'
-    implementation 'org.jsoup:jsoup:1.8.3'
+    implementation 'org.jsoup:jsoup:1.13.1'
     implementation 'org.apmem.tools:layouts:1.10@aar'
     implementation 'org.apache.httpcomponents:httpclient-android:4.3.5.1'
     implementation 'joda-time:joda-time:2.10.6'
     implementation 'su.j2e:rv-joiner:1.0.9'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.12'
-    implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.12.12'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
+    implementation 'com.squareup.okhttp3:okhttp-urlconnection:4.9.1'
     implementation 'com.squareup.retrofit2:retrofit:2.6.4'
     implementation 'com.squareup.retrofit2:converter-moshi:2.6.4'
     implementation 'com.samskivert:jmustache:1.15'
@@ -132,21 +132,19 @@ dependencies {
     implementation 'com.github.bumptech.glide:okhttp3-integration:1.5.0@aar'
     implementation 'net.sourceforge.streamsupport:streamsupport-cfuture:1.7.2'
 
-    implementation 'com.github.cdflynn:checkview:v1.1'
-    implementation 'com.dinuscxj:circleprogressbar:1.3.6'
-
 // Flavor
-    googlePlayServicesImplementation 'com.google.android.gms:play-services-basement:17.3.0'
+    googlePlayServicesImplementation 'com.google.android.gms:play-services-basement:17.6.0'
 
 // Debug
-    debugImplementation 'com.facebook.stetho:stetho:1.5.1'
-    debugImplementation 'com.facebook.stetho:stetho-okhttp3:1.5.1'
-    //debugImplementation 'com.squareup.leakcanary:leakcanary-android:x.y'
+    debugImplementation 'com.facebook.flipper:flipper:0.87.0'
+    debugImplementation 'com.facebook.soloader:soloader:0.10.1'
+    debugImplementation 'com.facebook.flipper:flipper-network-plugin:0.87.0'
+    releaseImplementation 'com.facebook.flipper:flipper-noop:0.87.0'
 
 // Testing
     testImplementation 'org.mockito:mockito-core:3.8.0'
     testImplementation 'junit:junit:4.13'
-    testImplementation 'com.squareup.okhttp3:okhttp:3.12.12'
+    testImplementation 'com.squareup.okhttp3:okhttp:4.9.1'
     testImplementation 'com.squareup.retrofit2:retrofit-mock:2.6.4'
     testImplementation 'commons-io:commons-io:2.7'
     testImplementation 'androidx.test:core:1.3.0'

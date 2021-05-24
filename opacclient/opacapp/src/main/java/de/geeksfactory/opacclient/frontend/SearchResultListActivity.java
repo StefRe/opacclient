@@ -188,6 +188,7 @@ public class SearchResultListActivity extends OpacActivity implements
             Intent detailIntent = new Intent(this,
                     SearchResultDetailActivity.class);
             detailIntent.putExtra(SearchResultDetailFragment.ARG_ITEM_NR, res.getNr());
+            detailIntent.putExtra(SearchResultDetailFragment.ARG_IS_META_SEARCH, isMetaSearch());
             if (res.getId() != null) {
                 detailIntent.putExtra(SearchResultDetailFragment.ARG_ITEM_ID,
                         res.getId());
@@ -231,6 +232,10 @@ public class SearchResultListActivity extends OpacActivity implements
     @Override
     public boolean isTwoPane() {
         return twoPane;
+    }
+
+    protected boolean isMetaSearch() {
+        return getIntent().getBooleanExtra(SearchResultDetailFragment.ARG_IS_META_SEARCH, false);
     }
 
     public class ReloadOldPageTask extends AsyncTask<Void, Void, SearchRequestResult> {

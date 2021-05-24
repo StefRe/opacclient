@@ -54,9 +54,7 @@ public abstract class OkHttpBaseApi extends BaseApi {
         MediaType contentType = body.contentType();
 
         try {
-            Charset charset = Util.bomAwareCharset(source,
-                    contentType != null ? contentType.charset(Charset.forName(encoding)) :
-                            Charset.forName(encoding));
+            Charset charset = contentType != null ? contentType.charset(Charset.forName(encoding)) : Charset.forName(encoding);
             return source.readString(charset);
         } finally {
             Util.closeQuietly(source);
@@ -223,7 +221,7 @@ public abstract class OkHttpBaseApi extends BaseApi {
     }
 
     /**
-     * Perform a HTTP HEAD request to a given URL
+     * Perform a HTTP HEAD request to a given URL. Falls back to GET if HEAD is unsupported.
      *
      * @param url           URL to fetch
      * @param ignore_errors If true, status codes above 400 do not raise an exception
@@ -242,6 +240,10 @@ public abstract class OkHttpBaseApi extends BaseApi {
         try {
             Response response = http_client.newCall(request).execute();
 
+            if (response.code() == 405) {
+                request = request.newBuilder().get().build();
+                response = http_client.newCall(request).execute();
+            }
             if (!ignore_errors && response.code() >= 400) {
                 throw new NotReachableException(response.message());
             }
